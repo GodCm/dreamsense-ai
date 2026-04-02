@@ -1,0 +1,42 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id               String   @id @default(uuid())
+  email            String   @unique
+  passwordHash     String   @map("password_hash")
+  createdAt        DateTime @default(now()) @map("created_at")
+  isSubscribed     Boolean  @default(false) @map("is_subscribed")
+  subscriptionType String?  @map("subscription_type")
+  freeTrialUsed    Boolean  @default(false) @map("free_trial_used")
+  deviceFingerprint String? @map("device_fingerprint")
+  registrationCount Int     @default(1) @map("registration_count")
+  
+  dreams           Dream[]
+
+  @@map("users")
+}
+
+model Dream {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  dreamText        String   @map("dream_text")
+  interpretation   String
+  createdAt        DateTime @default(now()) @map("created_at")
+  isPaid           Boolean  @default(false) @map("is_paid")
+  conversationRounds Int    @default(0) @map("conversation_rounds")
+  
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("dreams")
+}

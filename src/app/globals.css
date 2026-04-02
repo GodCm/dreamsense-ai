@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --color-primary: #0a0a0a;
+  --color-secondary: #111111;
+  --color-accent: #e94560;
+  --color-accent-secondary: #1a1a2e;
+}
+
+body {
+  background: var(--color-primary);
+  color: #eaeaea;
+  font-family: 'Nunito', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Quicksand', sans-serif;
+}
+
+/* Animated background */
+.stars-bg {
+  background: 
+    radial-gradient(2px 2px at 20px 30px, #eaeaea, transparent),
+    radial-gradient(2px 2px at 40px 70px, #e94560, transparent),
+    radial-gradient(1px 1px at 90px 40px, #eaeaea, transparent),
+    radial-gradient(2px 2px at 160px 120px, #e94560, transparent),
+    radial-gradient(1px 1px at 230px 80px, #eaeaea, transparent),
+    radial-gradient(2px 2px at 300px 150px, #e94560, transparent),
+    radial-gradient(1px 1px at 350px 200px, #eaeaea, transparent),
+    radial-gradient(2px 2px at 420px 50px, #e94560, transparent);
+  background-size: 450px 250px;
+  animation: stars 60s linear infinite;
+}
+
+@keyframes stars {
+  from { background-position: 0 0; }
+  to { background-position: 450px 250px; }
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Glow effect */
+.glow {
+  box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+}
+
+.glow-text {
+  text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+}

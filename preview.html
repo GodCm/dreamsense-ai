@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DreamSense AI - Unlock Your Dream Secrets</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #16213e;
+            --accent: #e94560;
+            --accent-secondary: #0f3460;
+            --text-primary: #eaeaea;
+            --text-secondary: #a0a0a0;
+        }
+
+        body {
+            background: var(--primary);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated stars background */
+        .stars-bg {
+            background: 
+                radial-gradient(2px 2px at 20px 30px, #eaeaea, transparent),
+                radial-gradient(2px 2px at 40px 70px, var(--accent), transparent),
+                radial-gradient(1px 1px at 90px 40px, #eaeaea, transparent),
+                radial-gradient(2px 2px at 160px 120px, var(--accent), transparent),
+                radial-gradient(1px 1px at 230px 80px, #eaeaea, transparent),
+                radial-gradient(2px 2px at 300px 150px, var(--accent), transparent),
+                radial-gradient(1px 1px at 350px 200px, #eaeaea, transparent),
+                radial-gradient(2px 2px at 420px 50px, var(--accent), transparent);
+            background-size: 450px 250px;
+            animation: stars 60s linear infinite;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+        }
+
+        @keyframes stars {
+            from { background-position: 0 0; }
+            to { background-position: 450px 250px; }
+        }
+
+        /* Floating animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* Glow effect */
+        .glow {
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(233, 69, 96, 0.2);
+            padding: 1rem 0;
+        }
+
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 700;
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-outline {
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .btn-outline:hover {
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: rgba(233, 69, 96, 0.8);
+            transform: scale(1.02);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 1rem 2rem;
+            text-align: center;
+        }
+
+        /* Character Container */
+        .character-container {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        /* Dream Bubble */
+        .dream-bubble {
+            position: absolute;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 280px;
+            padding: 1.5rem;
+            background: rgba(22, 33, 62, 0.95);
+            border-radius: 1rem;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+            opacity: 0;
+            transform: translateX(-50%) scale(0.95);
+            transition: all 0.3s ease-out;
+            pointer-events: none;
+        }
+
+        .dream-bubble.show {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+
+        .dream-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 24px;
+            background: rgba(22, 33, 62, 0.95);
+            border-right: 1px solid rgba(233, 69, 96, 0.3);
+            border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+            transform: translateX(-50%) rotate(45deg);
+        }
+
+        .dream-emoji {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .dream-title {
+            font-size: 1.25rem;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .dream-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Sleeping Character */
+        .sleeping-character {
+            width: 280px;
+            height: 280px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        /* Head trigger zone */
+        .head-trigger {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 60px;
+            background: transparent;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .head-trigger:hover {
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        /* Hover hint */
+        .hover-hint {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: var(--accent);
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+
+        .head-trigger:hover ~ .hover-hint {
+            opacity: 0;
+        }
+
+        /* SVG Character */
+        .character-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Hero Text */
+        .hero-text h1 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            glow-text: ;
+        }
+
+        @media (min-width: 768px) {
+            .hero-text h1 {
+                font-size: 4rem;
+            }
+        }
+
+        .hero-text p {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: var(--accent);
+            color: white;
+            font-size: 1.125rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .cta-button:hover {
+            background: rgba(233, 69, 96, 0.8);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 4rem 1rem;
+            background: rgba(22, 33, 62, 0.3);
+        }
+
+        .features-content {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .features h2 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(22, 33, 62, 0.5);
+            border-radius: 1rem;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            background: rgba(22, 33, 62, 0.8);
+            transform: scale(1.05);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 4rem 1rem;
+        }
+
+        .how-it-works h2 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .step {
+            text-align: center;
+        }
+
+        .step-number {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            border-radius: 50%;
+            background: rgba(233, 69, 96, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .step h3 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .step p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 4rem 1rem;
+            background: rgba(22, 33, 62, 0.3);
+            text-align: center;
+        }
+
+        .cta-section h2 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .cta-section p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 2rem 1rem;
+            text-align: center;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(233, 69, 96, 0.2);
+        }
+
+        footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin: 0 0.5rem;
+            transition: color 0.3s;
+        }
+
+        footer a:hover {
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="stars-bg"></div>
+
+    <nav>
+        <div class="nav-content">
+            <a href="#" class="logo">🌙 DreamSense AI</a>
+            <div class="nav-links">
+                <a href="#">Home</a>
+                <a href="#">Interpret</a>
+                <a href="#">Pricing</a>
+                <a href="#">My Dreams</a>
+            </div>
+            <div class="nav-buttons">
+                <a href="#" class="btn btn-outline">Login</a>
+                <a href="#" class="btn btn-primary">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="character-container">
+            <!-- Dream Bubble -->
+            <div class="dream-bubble" id="dreamBubble">
+                <div class="dream-emoji" id="dreamEmoji">☀️</div>
+                <div class="dream-title" id="dreamTitle">Beach Day</div>
+                <div class="dream-description" id="dreamDesc">Lying on warm sand, feeling the gentle ocean breeze...</div>
+            </div>
+
+            <!-- Sleeping Character -->
+            <div class="sleeping-character float-animation">
+                <div class="head-trigger" id="headTrigger"></div>
+                <div class="hover-hint" id="hoverHint">✨ Hover my head</div>
+                
+                <svg viewBox="0 0 200 200" class="character-svg">
+                    <!-- Body -->
+                    <ellipse cx="100" cy="140" rx="50" ry="40" fill="#16213e" />
+                    <!-- Blanket -->
+                    <path d="M60 120 Q100 160 140 120 L140 160 Q100 180 60 160 Z" fill="#0f3460" />
+                    
+                    <!-- Head -->
+                    <circle cx="100" cy="85" r="45" fill="#eaeaea" />
+                    
+                    <!-- Hair -->
+                    <path d="M60 70 Q80 50 100 55 Q120 50 140 70" fill="#16213e" stroke="#16213e" stroke-width="15" stroke-linecap="round" />
+                    
+                    <!-- Closed eyes -->
+                    <path d="M80 90 Q90 95 100 90" stroke="#16213e" stroke-width="3" fill="none" opacity="0.6" />
+                    <path d="M100 90 Q110 95 120 90" stroke="#16213e" stroke-width="3" fill="none" opacity="0.6" />
+                    
+                    <!-- Blush -->
+                    <circle cx="75" cy="95" r="8" fill="#e94560" opacity="0.3" />
+                    <circle cx="125" cy="95" r="8" fill="#e94560" opacity="0.3" />
+                    
+                    <!-- Mouth -->
+                    <path d="M95 105 Q100 108 105 105" stroke="#16213e" stroke-width="2" fill="none" opacity="0.4" />
+                    
+                    <!-- Zzz particles -->
+                    <text x="150" y="50" fill="#e94560" font-size="20" opacity="0.6">Z</text>
+                    <text x="165" y="35" fill="#e94560" font-size="16" opacity="0.4">z</text>
+                    <text x="175" y="25" fill="#e94560" font-size="12" opacity="0.2">z</text>
+                </svg>
+            </div>
+        </div>
+
+        <div class="hero-text">
+            <h1 class="glow-text">Unlock the Secrets of Your Dreams</h1>
+            <p>AI-powered dream analysis blending Eastern wisdom & Western psychology</p>
+            <a href="#" class="cta-button glow">Start Free Interpretation ✨</a>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="features-content">
+            <h2>Why DreamSense AI?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔮</div>
+                    <h3>Personalized</h3>
+                    <p>Every dream is unique. Get interpretations tailored to your specific details and emotions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Deep Analysis</h3>
+                    <p>Combining psychological theories with ancient symbolism for profound insights.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💫</div>
+                    <h3>Practical Guidance</h3>
+                    <p>Not just analysis - receive actionable advice for your waking life.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works">
+        <h2>How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Describe</h3>
+                <p>Write down your dream in as much detail as you remember.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Analyze</h3>
+                <p>Our AI deeply analyzes symbols, emotions, and patterns.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Understand</h3>
+                <p>Receive your personalized interpretation with practical guidance.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <h2>Ready to Explore Your Dreams?</h2>
+        <p>Start with your free dream interpretation today.</p>
+        <a href="#" class="cta-button glow">Get Started Free 🚀</a>
+    </section>
+
+    <footer>
+        <p>© 2026 DreamSense AI. All rights reserved.</p>
+        <div style="margin-top: 1rem;">
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="#">Contact</a>
+        </div>
+    </footer>
+
+    <script>
+        const dreamScenes = [
+            { emoji: '☀️', title: 'Beach Day', desc: 'Lying on warm sand, feeling the gentle ocean breeze...' },
+            { emoji: '📝', title: 'The Exam', desc: 'In a classroom, facing a test you didn\'t study for...' },
+            { emoji: '🐕', title: 'Morning Walk', desc: 'Walking through a beautiful park with a happy dog...' }
+        ];
+
+        let currentScene = 0;
+        let isHovering = false;
+        let intervalId = null;
+
+        const dreamBubble = document.getElementById('dreamBubble');
+        const dreamEmoji = document.getElementById('dreamEmoji');
+        const dreamTitle = document.getElementById('dreamTitle');
+        const dreamDesc = document.getElementById('dreamDesc');
+        const headTrigger = document.getElementById('headTrigger');
+
+        function updateDream() {
+            const scene = dreamScenes[currentScene];
+            dreamEmoji.textContent = scene.emoji;
+            dreamTitle.textContent = scene.title;
+            dreamDesc.textContent = scene.desc;
+        }
+
+        function startCycling() {
+            intervalId = setInterval(() => {
+                currentScene = (currentScene + 1) % dreamScenes.length;
+                updateDream();
+            }, 3000);
+        }
+
+        function stopCycling() {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+        }
+
+        headTrigger.addEventListener('mouseenter', () => {
+            isHovering = true;
+            dreamBubble.classList.add('show');
+            startCycling();
+        });
+
+        headTrigger.addEventListener('mouseleave', () => {
+            isHovering = false;
+            setTimeout(() => {
+                if (!isHovering) {
+                    dreamBubble.classList.remove('show');
+                    stopCycling();
+                }
+            }, 300);
+        });
+    </script>
+</body>
+</html>

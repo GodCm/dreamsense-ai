@@ -1,0 +1,65 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { verifyPassword, generateToken, setAuthCookie } from '@/lib/auth';
+
+export async function POST(request: NextRequest) {
+  try {
+    const { email, password, deviceFingerprint } = await request.json();
+
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: 'Email and password are required' },
+        { status: 400 }
+      );
+    }
+
+    // Find user
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Invalid email or password' },
+        { status: 401 }
+      );
+    }
+
+    // Verify password
+    const isValid = await verifyPassword(password, user.passwordHash);
+    if (!isValid) {
+      return NextResponse.json(
+        { error: 'Invalid email or password' },
+        { status: 401 }
+      );
+    }
+
+    // 更新设备指纹（如果用户之前没有）
+    if (deviceFingerprint && !user.deviceFingerprint) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { deviceFingerprint },
+      });
+    }
+
+    // Generate token and set cookie
+    const token = generateToken(user.id);
+    await setAuthCookie(token);
+
+    return NextResponse.json({
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        email: user.email,
+        isSubscribed: user.isSubscribed,
+        freeTrialUsed: user.freeTrialUsed,
+      },
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    return NextResponse.json(
+      { error: 'Something went wrong' },
+      { status: 500 }
+    );
+  }
+}
