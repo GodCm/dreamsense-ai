@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
-  const signature = request.headers.get('webhook-signature');
+  const signature = request.headers.get('x-webhook-signature');
 
   if (!signature) {
     return NextResponse.json(
@@ -16,18 +16,18 @@ export async function POST(request: NextRequest) {
 
   try {
     // 验证 Webhook 签名
-    const event = creem.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.CREEM_WEBHOOK_SECRET || ''
-    );
+    const event = creem.webhooks.verify({
+      payload: body,
+      signature: signature,
+      secret: process.env.CREEM_WEBHOOK_SECRET || '',
+    });
 
     // 根据事件类型处理
     switch (event.type) {
-      case 'checkout.session.completed':
+      case 'checkout.completed':
         await handleCheckoutCompleted(event.data);
         break;
-      case 'checkout.session.failed':
+      case 'checkout.failed':
         await handleCheckoutFailed(event.data);
         break;
       default:
@@ -44,13 +44,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleCheckoutCompleted(session: any) {
-  console.log('支付成功:', session);
+async function handleCheckoutCompleted(data: any) {
+  console.log('支付成功:', data);
   // TODO: 更新数据库，记录支付信息
   // TODO: 激活用户订阅或积分
 }
 
-async function handleCheckoutFailed(session: any) {
-  console.log('支付失败:', session);
+async function handleCheckoutFailed(data: any) {
+  console.log('支付失败:', data);
   // TODO: 记录失败原因
 }

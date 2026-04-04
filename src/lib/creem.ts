@@ -1,9 +1,8 @@
-import { CreemClient } from '@creem_io/nextjs';
+import { createCreem } from 'creem_io';
 
-const creem = new CreemClient({
+export const creem = createCreem({
   apiKey: process.env.CREEM_API_KEY || 'creem_5GjMeIkjlxCjXuDWu7WMvs',
 });
 
-export { creem };
 
 
