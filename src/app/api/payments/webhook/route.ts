@@ -53,7 +53,7 @@ export const POST = Webhook({
       subscription: {
         id: data.id,
         status: data.status,
-        currentPeriodEnd: data.currentPeriodEndDate?.toISOString() || '',
+        currentPeriodEnd: data.current_period_end_date?.toISOString() || '',
         productId: data.product.id,
         productName: data.product.name,
       },
@@ -73,7 +73,7 @@ export const POST = Webhook({
       subscription: {
         id: data.id,
         status: data.status,
-        trialEnd: data.currentPeriodEndDate?.toISOString() || '',
+        trialEnd: data.current_period_end_date?.toISOString() || '',
         productId: data.product.id,
         productName: data.product.name,
       },
@@ -111,7 +111,7 @@ export const POST = Webhook({
       subscription: {
         id: data.id,
         status: data.status,
-        currentPeriodEnd: data.currentPeriodEndDate?.toISOString() || '',
+        currentPeriodEnd: data.current_period_end_date?.toISOString() || '',
       },
       customer: { email: customer.email },
     });
@@ -129,7 +129,7 @@ export const POST = Webhook({
       subscription: {
         id: data.id,
         status: data.status,
-        currentPeriodEnd: data.currentPeriodEndDate?.toISOString() || '',
+        currentPeriodEnd: data.current_period_end_date?.toISOString() || '',
       },
       customer: { email: customer.email },
     });
