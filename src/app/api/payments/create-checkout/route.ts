@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     const { priceId, successUrl, cancelUrl, metadata = {} } = body;
 
     // 创建 Checkout Session
-    const checkoutUrl = await creem.checkout.create({
+    const checkout = await creem.checkouts.create({
       priceId: priceId,
       successUrl: successUrl,
       cancelUrl: cancelUrl,
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      url: checkoutUrl,
+      url: checkout.url,
     });
   } catch (error) {
     console.error('创建支付会话失败:', error);
