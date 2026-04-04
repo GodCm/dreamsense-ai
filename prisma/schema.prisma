@@ -58,7 +58,7 @@ model Payment {
   updatedAt         DateTime @updatedAt @map("updated_at")
 
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  refund            Refund?
+  refunds           Refund[]
 
   @@index([userId])
   @@index([creemPaymentId])
