@@ -1,6 +1,5 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { prisma } from './db';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dreamsense-ai-secret';
 
@@ -37,6 +36,9 @@ export async function getUserFromRequest(request?: Request) {
 
   const decoded = verifyToken(token);
   if (!decoded) return null;
+
+  // 动态导入 prisma 避免构建时的依赖分析
+  const { prisma } = await import('./db');
 
   const user = await prisma.user.findUnique({
     where: { id: decoded.userId },
