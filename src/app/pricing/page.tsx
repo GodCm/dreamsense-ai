@@ -16,6 +16,7 @@ const plans = [
     ],
     cta: 'Get Started',
     popular: false,
+    priceId: 'price_single_dream',
   },
   {
     name: 'Monthly',
@@ -30,6 +31,7 @@ const plans = [
     ],
     cta: 'Subscribe Monthly',
     popular: true,
+    priceId: 'price_monthly',
   },
   {
     name: 'Yearly',
@@ -44,10 +46,43 @@ const plans = [
     ],
     cta: 'Subscribe Yearly',
     popular: false,
+    priceId: 'price_yearly',
   },
 ];
 
 export default function PricingPage() {
+  const [loading, setLoading] = useState<number | null>(null);
+
+  const handleSubscribe = async (plan: typeof plans[0], index: number) => {
+    try {
+      setLoading(index);
+
+      const response = await fetch('/api/payments/create-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId: plan.priceId,
+          successUrl: `${window.location.origin}/my-dreams`,
+          cancelUrl: `${window.location.origin}/pricing`,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('创建支付失败，请重试');
+        setLoading(null);
+      }
+    } catch (error) {
+      console.error('支付错误:', error);
+      alert('支付出错，请重试');
+      setLoading(null);
+    }
+  };
   return (
     <div className="min-h-screen py-24 px-4">
       <div className="max-w-5xl mx-auto">
@@ -93,20 +128,22 @@ export default function PricingPage() {
               </ul>
 
               <button
+                onClick={() => handleSubscribe(plan, index)}
+                disabled={loading === index}
                 className={`w-full py-3 rounded-xl font-semibold transition-all ${
                   plan.popular
                     ? 'bg-accent hover:bg-accent/80 glow'
                     : 'bg-accent-secondary hover:bg-accent-secondary/80'
-                }`}
+                } ${loading === index ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {plan.cta}
+                {loading === index ? 'Processing...' : plan.cta}
               </button>
             </div>
           ))}
         </div>
 
         <div className="mt-12 text-center text-text-secondary">
-          <p>🔒 Secure payment powered by Stripe</p>
+          <p>🔒 Secure payment powered by Creem</p>
           <p className="mt-2">Cancel anytime. No hidden fees.</p>
         </div>
       </div>

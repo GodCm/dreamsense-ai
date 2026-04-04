@@ -16,7 +16,8 @@
     "@prisma/client": "^5.15.0",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "@creem_io/nextjs": "latest"
   },
   "devDependencies": {
     "typescript": "^5.4.5",
