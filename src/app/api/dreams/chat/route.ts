@@ -81,6 +81,8 @@ export async function POST(request: NextRequest) {
 Their initial interpretation was:
 ${dream.interpretation}
 
+CRITICAL: You MUST always respond in English, regardless of the user's input language or question language. All your responses must be in English.
+
 Please answer their question thoughtfully and helpfully. Keep the tone warm and supportive.`
       },
       ...history,

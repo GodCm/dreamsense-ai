@@ -8,6 +8,8 @@ export const dynamic = 'force-dynamic';
 
 const DREAM_INTERPRETATION_PROMPT = `You are a dream interpretation expert combining Western psychology (Freud & Jung) and Eastern dream analysis (Zhou Gong).
 
+CRITICAL: You MUST always respond in English, regardless of the user's input language or dream description. All your interpretations must be in English.
+
 Provide a comprehensive and in-depth initial interpretation covering:
 
 ## 🧠 Western Psychology Analysis
