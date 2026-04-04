@@ -93,25 +93,7 @@ export const POST = Webhook({
       subscription: {
         id: data.id,
         status: data.status,
-        canceledAt: data.canceledAt?.toISOString() || '',
-      },
-      customer: { email: customer.email },
-    });
-  },
-
-  // 订阅计划取消（在当前计费周期结束时生效）
-  onSubscriptionScheduledCancel: async (data) => {
-    const customer = data.customer;
-    if (!customer?.email) {
-      console.error('❌ 缺少 customer.email');
-      return;
-    }
-    console.log(`订阅计划取消: ${customer.email} - 订阅ID: ${data.id}`);
-    await handleSubscriptionScheduledCancel({
-      subscription: {
-        id: data.id,
-        status: data.status,
-        currentPeriodEnd: data.current_period_end_date?.toISOString() || '',
+        canceledAt: data.canceled_at?.toISOString() || '',
       },
       customer: { email: customer.email },
     });
@@ -171,7 +153,7 @@ export const POST = Webhook({
   },
 
   // 订阅更新（升级/降级）
-  onSubscriptionUpdated: async (data) => {
+  onSubscriptionUpdate: async (data) => {
     const customer = data.customer;
     if (!customer?.email) {
       console.error('❌ 缺少 customer.email');
@@ -201,7 +183,7 @@ export const POST = Webhook({
       subscription: {
         id: data.id,
         status: data.status,
-        nextPaymentDate: data.nextTransactionDate?.toISOString() || '',
+        nextPaymentDate: data.next_transaction_date?.toISOString() || '',
       },
       customer: { email: customer.email },
     });
@@ -272,8 +254,7 @@ export const POST = Webhook({
 
 // ========== 数据库导入和工具函数 ==========
 
-// 动态导入 Prisma 客户端，避免构建时依赖
-const { prisma } = await import('@/lib/db');
+import { prisma } from '@/lib/db';
 
 // 通过邮箱查找用户
 async function findUserByEmail(email: string) {
