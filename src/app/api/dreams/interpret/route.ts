@@ -3,6 +3,9 @@ import { prisma } from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
 import { checkContent } from '@/lib/content-filter';
 
+// 强制动态渲染，避免构建时预渲染错误
+export const dynamic = 'force-dynamic';
+
 const DREAM_INTERPRETATION_PROMPT = `You are a dream interpretation expert combining Western psychology (Freud & Jung) and Eastern dream analysis (Zhou Gong).
 
 Provide a comprehensive and in-depth initial interpretation covering:

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { clearAuthCookie } from '@/lib/auth';
 
+// 强制动态渲染，避免构建时预渲染错误
+export const dynamic = 'force-dynamic';
+
 export async function POST() {
   try {
     const response = NextResponse.json({ message: 'Logout successful' });
