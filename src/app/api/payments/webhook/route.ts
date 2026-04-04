@@ -16,25 +16,16 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // 验证 Webhook 签名
-    const event = creemClient.webhooks.verify({
-      payload: body,
-      signature: signature,
-      secret: process.env.CREEM_WEBHOOK_SECRET || '',
+    // 使用 handleEvents 处理 Webhook
+    await creemClient.webhooks.handleEvents(body, signature, {
+      webhookSecret: process.env.CREEM_WEBHOOK_SECRET || '',
+      onCheckoutCompleted: async (data) => {
+        await handleCheckoutCompleted(data);
+      },
+      onCheckoutFailed: async (data) => {
+        await handleCheckoutFailed(data);
+      },
     });
-
-
-    // 根据事件类型处理
-    switch (event.type) {
-      case 'checkout.completed':
-        await handleCheckoutCompleted(event.data);
-        break;
-      case 'checkout.failed':
-        await handleCheckoutFailed(event.data);
-        break;
-      default:
-        console.log(`未处理的事件类型: ${event.type}`);
-    }
 
     return NextResponse.json({ received: true });
   } catch (error) {
