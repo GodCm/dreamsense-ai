@@ -106,11 +106,11 @@ export default function InterpretPage() {
 
   const handleChatSubmit = async (e: React.FormEvent, message: string) => {
     e.preventDefault();
-    
+
     if (!message.trim() || !dreamId || chatEnded) return;
 
     // 添加用户消息
-    const newHistory = [...chatHistory, { role: 'user', content: message }];
+    const newHistory: ChatMessage[] = [...chatHistory, { role: 'user', content: message }];
     setChatHistory(newHistory);
     setIsChatLoading(true);
 
@@ -131,9 +131,10 @@ export default function InterpretPage() {
       }
 
       const data = await response.json();
-      
+
       // 添加AI回复
-      setChatHistory([...newHistory, { role: 'assistant', content: data.response }]);
+      const updatedHistory: ChatMessage[] = [...newHistory, { role: 'assistant', content: data.response }];
+      setChatHistory(updatedHistory);
       setConversationRounds(data.conversationRounds);
       
       if (data.ended) {
