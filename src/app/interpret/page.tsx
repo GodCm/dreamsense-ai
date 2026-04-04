@@ -110,7 +110,7 @@ export default function InterpretPage() {
     if (!message.trim() || !dreamId || chatEnded) return;
 
     // 添加用户消息
-    const newHistory: ChatMessage[] = [...chatHistory, { role: 'user', content: message }];
+    const newHistory = [...chatHistory, { role: 'user' as const, content: message }];
     setChatHistory(newHistory);
     setIsChatLoading(true);
 
@@ -133,8 +133,7 @@ export default function InterpretPage() {
       const data = await response.json();
 
       // 添加AI回复
-      const updatedHistory: ChatMessage[] = [...newHistory, { role: 'assistant', content: data.response }];
-      setChatHistory(updatedHistory);
+      setChatHistory([...newHistory, { role: 'assistant' as const, content: data.response }]);
       setConversationRounds(data.conversationRounds);
       
       if (data.ended) {
