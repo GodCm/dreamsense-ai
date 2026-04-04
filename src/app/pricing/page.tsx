@@ -65,9 +65,9 @@ export default function PricingPage() {
         body: JSON.stringify({
           priceId: plan.priceId,
           successUrl: `${window.location.origin}/my-dreams`,
-          cancelUrl: `${window.location.origin}/pricing`,
         }),
       });
+
 
       const data = await response.json();
 

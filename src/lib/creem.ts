@@ -1,8 +1,9 @@
-import { createCreem } from 'creem_io';
+import { Creem } from 'creem_io';
 
-export const creem = createCreem({
+export const creem = new Creem({
   apiKey: process.env.CREEM_API_KEY || 'creem_5GjMeIkjlxCjXuDWu7WMvs',
 });
+
 
 
 
