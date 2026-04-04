@@ -1,6 +1,5 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { cookies } from 'next/headers';
 import { prisma } from './db';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dreamsense-ai-secret';
@@ -26,14 +25,15 @@ export function verifyToken(token: string): { userId: string } | null {
 }
 
 export async function getUserFromRequest() {
+  const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   const token = cookieStore.get('auth-token')?.value;
-  
+
   if (!token) return null;
-  
+
   const decoded = verifyToken(token);
   if (!decoded) return null;
-  
+
   const user = await prisma.user.findUnique({
     where: { id: decoded.userId },
     select: {
@@ -44,11 +44,12 @@ export async function getUserFromRequest() {
       freeTrialUsed: true,
     },
   });
-  
+
   return user;
 }
 
 export async function setAuthCookie(token: string) {
+  const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   cookieStore.set('auth-token', token, {
     httpOnly: true,
@@ -60,6 +61,7 @@ export async function setAuthCookie(token: string) {
 }
 
 export async function clearAuthCookie() {
+  const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   cookieStore.delete('auth-token');
 }
