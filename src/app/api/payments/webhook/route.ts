@@ -17,16 +17,6 @@ export const POST = Webhook({
     await handleCheckoutCompleted({ customer: { email: customer.email }, product });
   },
 
-  // 处理支付失败事件
-  onCheckoutFailed: async ({ customer, product, error }) => {
-    if (!customer?.email) {
-      console.error('❌ 缺少 customer.email');
-      return;
-    }
-    console.log(`支付失败: ${customer.email} - ${error?.message || '未知错误'}`);
-    await handleCheckoutFailed({ customer: { email: customer.email }, product, error });
-  },
-
   // ========== 访问权限事件 ==========
   // 处理授权访问事件 (通常用于订阅)
   onGrantAccess: async ({ customer, metadata }) => {
@@ -302,47 +292,6 @@ async function handleCheckoutCompleted(data: {
     console.log(`✅ 支付完成 - 用户: ${customer.email}, 产品: ${product.name}`);
   } catch (error) {
     console.error('❌ 处理支付完成失败:', error);
-    throw error;
-  }
-}
-
-async function handleCheckoutFailed(data: {
-  customer: { email: string };
-  product: { id: string };
-  error?: { message: string };
-  checkoutId?: string;
-}) {
-  const { customer, product, error, checkoutId } = data;
-
-  try {
-    // 查找用户
-    const user = await findUserByEmail(customer.email);
-
-    if (!user) {
-      console.log(`⚠️ 用户 ${customer.email} 尚未注册`);
-      return;
-    }
-
-    // 更新支付记录状态
-    if (checkoutId) {
-      await createPayment({
-        userId: user.id,
-        creemPaymentId: checkoutId,
-        amount: 0,
-        currency: 'USD',
-        status: 'FAILED',
-        productId: product.id,
-        productName: product.name,
-        customerEmail: customer.email,
-      });
-    }
-
-    console.log(`❌ 支付失败 - 用户: ${customer.email}, 原因: ${error?.message || '未知'}`);
-
-    // TODO: 发送支付失败通知邮件
-    // TODO: 记录失败原因到数据库
-  } catch (error) {
-    console.error('❌ 处理支付失败事件失败:', error);
     throw error;
   }
 }
