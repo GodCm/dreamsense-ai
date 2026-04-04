@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { creem } from '@/lib/creem';
+import { creemClient } from '@/lib/creem';
+
 
 export const dynamic = 'force-dynamic';
 
@@ -16,11 +17,12 @@ export async function POST(request: NextRequest) {
 
   try {
     // 验证 Webhook 签名
-    const event = creem.webhooks.verify({
+    const event = creemClient.webhooks.verify({
       payload: body,
       signature: signature,
       secret: process.env.CREEM_WEBHOOK_SECRET || '',
     });
+
 
     // 根据事件类型处理
     switch (event.type) {

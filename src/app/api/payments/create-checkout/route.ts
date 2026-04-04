@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { creem } from '@/lib/creem';
+import { creemClient } from '@/lib/creem';
+
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
     const { priceId, successUrl, metadata = {} } = body;
 
     // 创建 Checkout Session
-    const checkout = await creem.checkouts.create({
+    const checkout = await creemClient.checkouts.create({
       productId: priceId,
       successUrl: successUrl,
       metadata: {
@@ -24,6 +25,7 @@ export async function POST(request: NextRequest) {
         timestamp: new Date().toISOString(),
       },
     });
+
 
     return NextResponse.json({
       success: true,
