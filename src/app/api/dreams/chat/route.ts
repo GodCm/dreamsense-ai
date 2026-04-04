@@ -4,8 +4,8 @@ import { getUserFromRequest } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getUserFromRequest();
-    
+    const user = await getUserFromRequest(request);
+
     if (!user) {
       return NextResponse.json(
         { error: 'Please login to continue' },

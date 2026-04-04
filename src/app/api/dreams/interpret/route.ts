@@ -33,8 +33,8 @@ Keep the tone warm, insightful, and supportive. Use emojis to make it engaging.`
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getUserFromRequest();
-    
+    const user = await getUserFromRequest(request);
+
     if (!user) {
       return NextResponse.json(
         { error: 'Please login to interpret dreams' },

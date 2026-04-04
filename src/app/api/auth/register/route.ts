@@ -57,15 +57,17 @@ export async function POST(request: NextRequest) {
 
     // Generate token and set cookie
     const token = generateToken(user.id);
-    await setAuthCookie(token);
-
-    return NextResponse.json({
+    const response = NextResponse.json({
       message: 'Account created successfully',
       user: {
         id: user.id,
         email: user.email,
       },
     });
+
+    setAuthCookie(response, token);
+
+    return response;
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(

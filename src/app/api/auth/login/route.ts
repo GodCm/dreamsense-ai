@@ -44,9 +44,7 @@ export async function POST(request: NextRequest) {
 
     // Generate token and set cookie
     const token = generateToken(user.id);
-    await setAuthCookie(token);
-
-    return NextResponse.json({
+    const response = NextResponse.json({
       message: 'Login successful',
       user: {
         id: user.id,
@@ -55,6 +53,10 @@ export async function POST(request: NextRequest) {
         freeTrialUsed: user.freeTrialUsed,
       },
     });
+
+    setAuthCookie(response, token);
+
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(

@@ -24,12 +24,16 @@ export function verifyToken(token: string): { userId: string } | null {
   }
 }
 
-export async function getUserFromRequest() {
-  const { cookies } = await import('next/headers');
-  const cookieStore = await cookies();
-  const token = cookieStore.get('auth-token')?.value;
+export async function getUserFromRequest(request?: Request) {
+  if (!request) return null;
 
-  if (!token) return null;
+  const cookieHeader = request.headers.get('cookie');
+  if (!cookieHeader) return null;
+
+  const tokenMatch = cookieHeader.match(/auth-token=([^;]+)/);
+  if (!tokenMatch) return null;
+
+  const token = tokenMatch[1];
 
   const decoded = verifyToken(token);
   if (!decoded) return null;
@@ -48,10 +52,8 @@ export async function getUserFromRequest() {
   return user;
 }
 
-export async function setAuthCookie(token: string) {
-  const { cookies } = await import('next/headers');
-  const cookieStore = await cookies();
-  cookieStore.set('auth-token', token, {
+export function setAuthCookie(response: any, token: string) {
+  response.cookies.set('auth-token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -60,8 +62,6 @@ export async function setAuthCookie(token: string) {
   });
 }
 
-export async function clearAuthCookie() {
-  const { cookies } = await import('next/headers');
-  const cookieStore = await cookies();
-  cookieStore.delete('auth-token');
+export function clearAuthCookie(response: any) {
+  response.cookies.delete('auth-token');
 }
