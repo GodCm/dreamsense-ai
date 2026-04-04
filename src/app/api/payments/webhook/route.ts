@@ -9,19 +9,31 @@ export const POST = Webhook({
   // ========== 支付相关事件 ==========
   // 处理一次性支付成功事件
   onCheckoutCompleted: async ({ customer, product }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     console.log(`支付成功: ${customer.email} 购买了 ${product.name}`);
-    await handleCheckoutCompleted({ customer, product });
+    await handleCheckoutCompleted({ customer: { email: customer.email }, product });
   },
 
   // 处理支付失败事件
   onCheckoutFailed: async ({ customer, product, error }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     console.log(`支付失败: ${customer.email} - ${error?.message || '未知错误'}`);
-    await handleCheckoutFailed({ customer, product, error });
+    await handleCheckoutFailed({ customer: { email: customer.email }, product, error });
   },
 
   // ========== 访问权限事件 ==========
   // 处理授权访问事件 (通常用于订阅)
   onGrantAccess: async ({ customer, metadata }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     const userId = metadata?.referenceId as string;
     console.log(`授予访问权限: ${customer.email}, 用户ID: ${userId}`);
     await grantAccess(userId, customer.email);
@@ -29,6 +41,10 @@ export const POST = Webhook({
 
   // 处理撤销访问事件 (订阅取消)
   onRevokeAccess: async ({ customer, metadata }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     const userId = metadata?.referenceId as string;
     console.log(`撤销访问权限: ${customer.email}, 用户ID: ${userId}`);
     await revokeAccess(userId);
@@ -37,75 +53,123 @@ export const POST = Webhook({
   // ========== 订阅状态事件 ==========
   // 订阅激活（包括新订阅和续订）
   onSubscriptionActive: async ({ subscription, customer }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     console.log(`订阅激活: ${customer.email} - 订阅ID: ${subscription.id}`);
-    await handleSubscriptionActive({ subscription, customer });
+    await handleSubscriptionActive({ subscription, customer: { email: customer.email } });
   },
 
   // 订阅试用期开始
   onSubscriptionTrialing: async ({ subscription, customer }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     console.log(`订阅试用期: ${customer.email} - 订阅ID: ${subscription.id}`);
-    await handleSubscriptionTrialing({ subscription, customer });
+    await handleSubscriptionTrialing({ subscription, customer: { email: customer.email } });
   },
 
   // 订阅取消（立即生效）
   onSubscriptionCanceled: async ({ subscription, customer }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     console.log(`订阅取消: ${customer.email} - 订阅ID: ${subscription.id}`);
-    await handleSubscriptionCanceled({ subscription, customer });
+    await handleSubscriptionCanceled({ subscription, customer: { email: customer.email } });
   },
 
   // 订阅计划取消（在当前计费周期结束时生效）
   onSubscriptionScheduledCancel: async ({ subscription, customer }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     console.log(`订阅计划取消: ${customer.email} - 订阅ID: ${subscription.id}`);
-    await handleSubscriptionScheduledCancel({ subscription, customer });
+    await handleSubscriptionScheduledCancel({ subscription, customer: { email: customer.email } });
   },
 
   // 订阅支付成功
   onSubscriptionPaid: async ({ subscription, customer }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     console.log(`订阅支付成功: ${customer.email} - 订阅ID: ${subscription.id}`);
-    await handleSubscriptionPaid({ subscription, customer });
+    await handleSubscriptionPaid({ subscription, customer: { email: customer.email } });
   },
 
   // 订阅过期（未续订）
   onSubscriptionExpired: async ({ subscription, customer }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     console.log(`订阅过期: ${customer.email} - 订阅ID: ${subscription.id}`);
-    await handleSubscriptionExpired({ subscription, customer });
+    await handleSubscriptionExpired({ subscription, customer: { email: customer.email } });
   },
 
   // 订阅未支付
   onSubscriptionUnpaid: async ({ subscription, customer }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     console.log(`订阅未支付: ${customer.email} - 订阅ID: ${subscription.id}`);
-    await handleSubscriptionUnpaid({ subscription, customer });
+    await handleSubscriptionUnpaid({ subscription, customer: { email: customer.email } });
   },
 
   // 订阅更新（升级/降级）
   onSubscriptionUpdated: async ({ subscription, customer }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     console.log(`订阅更新: ${customer.email} - 订阅ID: ${subscription.id}`);
-    await handleSubscriptionUpdated({ subscription, customer });
+    await handleSubscriptionUpdated({ subscription, customer: { email: customer.email } });
   },
 
   // 订阅逾期未支付
   onSubscriptionPastDue: async ({ subscription, customer }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     console.log(`订阅逾期: ${customer.email} - 订阅ID: ${subscription.id}`);
-    await handleSubscriptionPastDue({ subscription, customer });
+    await handleSubscriptionPastDue({ subscription, customer: { email: customer.email } });
   },
 
   // 订阅暂停
   onSubscriptionPaused: async ({ subscription, customer }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     console.log(`订阅暂停: ${customer.email} - 订阅ID: ${subscription.id}`);
-    await handleSubscriptionPaused({ subscription, customer });
+    await handleSubscriptionPaused({ subscription, customer: { email: customer.email } });
   },
 
   // ========== 退款和争议事件 ==========
   // 退款创建
   onRefundCreated: async ({ refund, subscription, customer }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     console.log(`退款创建: ${customer.email} - 退款ID: ${refund.id}, 金额: ${refund.amount}`);
-    await handleRefundCreated({ refund, subscription, customer });
+    await handleRefundCreated({ refund, subscription, customer: { email: customer.email } });
   },
 
   // 争议创建（用户通过银行拒绝支付）
   onDisputeCreated: async ({ dispute, customer }) => {
+    if (!customer?.email) {
+      console.error('❌ 缺少 customer.email');
+      return;
+    }
     console.log(`争议创建: ${customer.email} - 争议ID: ${dispute.id}, 金额: ${dispute.amount}`);
-    await handleDisputeCreated({ dispute, customer });
+    await handleDisputeCreated({ dispute, customer: { email: customer.email } });
   },
 });
 
