@@ -21,8 +21,10 @@ model User {
   freeTrialUsed    Boolean  @default(false) @map("free_trial_used")
   deviceFingerprint String? @map("device_fingerprint")
   registrationCount Int     @default(1) @map("registration_count")
-  
+
   dreams           Dream[]
+  payments         Payment[]
+  subscriptions     Subscription[]
 
   @@map("users")
 }
@@ -35,8 +37,118 @@ model Dream {
   createdAt        DateTime @default(now()) @map("created_at")
   isPaid           Boolean  @default(false) @map("is_paid")
   conversationRounds Int    @default(0) @map("conversation_rounds")
-  
+
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("dreams")
+}
+
+// 支付记录表
+model Payment {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  creemPaymentId    String   @unique @map("creem_payment_id")
+  amount            Decimal  @db.Decimal(10, 2)
+  currency          String   @default("USD")
+  status            PaymentStatus @default(PENDING)
+  productId         String   @map("product_id")
+  productName       String   @map("product_name")
+  customerEmail     String   @map("customer_email")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refund            Refund?
+
+  @@index([userId])
+  @@index([creemPaymentId])
+  @@index([status])
+  @@map("payments")
+}
+
+// 订阅表
+model Subscription {
+  id                String            @id @default(uuid())
+  userId            String            @map("user_id")
+  creemSubscriptionId String   @unique @map("creem_subscription_id")
+  status            SubscriptionStatus
+  productId         String?           @map("product_id")
+  productName       String?           @map("product_name")
+  currentPeriodEnd  DateTime?         @map("current_period_end")
+  trialEnd          DateTime?         @map("trial_end")
+  canceledAt        DateTime?         @map("canceled_at")
+  endedAt           DateTime?         @map("ended_at")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([creemSubscriptionId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+// 退款表
+model Refund {
+  id              String   @id @default(uuid())
+  paymentId       String   @map("payment_id")
+  creemRefundId   String   @unique @map("creem_refund_id")
+  amount          Decimal  @db.Decimal(10, 2)
+  currency        String   @default("USD")
+  reason          String?
+  status          RefundStatus @default(PENDING)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  payment         Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+  @@index([creemRefundId])
+  @@map("refunds")
+}
+
+// 争议表
+model Dispute {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  creemDisputeId  String   @unique @map("creem_dispute_id")
+  amount          Decimal  @db.Decimal(10, 2)
+  currency        String   @default("USD")
+  reason          String
+  status          String
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([creemDisputeId])
+  @@map("disputes")
+}
+
+// 支付状态枚举
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELED
+}
+
+// 订阅状态枚举
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  CANCELED
+  EXPIRED
+  PAST_DUE
+  UNPAID
+  PAUSED
+  SCHEDULED_TO_CANCEL
+}
+
+// 退款状态枚举
+enum RefundStatus {
+  PENDING
+  COMPLETED
+  FAILED
 }

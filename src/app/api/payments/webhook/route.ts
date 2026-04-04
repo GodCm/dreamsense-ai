@@ -109,41 +109,213 @@ export const POST = Webhook({
   },
 });
 
+// ========== 数据库导入和工具函数 ==========
+
+// 动态导入 Prisma 客户端，避免构建时依赖
+const { prisma } = await import('@/lib/db');
+
+// 通过邮箱查找用户
+async function findUserByEmail(email: string) {
+  return await prisma.user.findUnique({
+    where: { email },
+  });
+}
+
+// 创建或更新支付记录
+async function createPayment(data: {
+  userId: string;
+  creemPaymentId: string;
+  amount: number;
+  currency: string;
+  status: string;
+  productId: string;
+  productName: string;
+  customerEmail: string;
+}) {
+  return await prisma.payment.upsert({
+    where: { creemPaymentId: data.creemPaymentId },
+    update: {
+      status: data.status as any,
+      updatedAt: new Date(),
+    },
+    create: {
+      userId: data.userId,
+      creemPaymentId: data.creemPaymentId,
+      amount: data.amount,
+      currency: data.currency,
+      status: data.status as any,
+      productId: data.productId,
+      productName: data.productName,
+      customerEmail: data.customerEmail,
+    },
+  });
+}
+
+// 创建或更新订阅记录
+async function createOrUpdateSubscription(data: {
+  userId: string;
+  creemSubscriptionId: string;
+  status: string;
+  productId?: string;
+  productName?: string;
+  currentPeriodEnd?: Date;
+  trialEnd?: Date;
+  canceledAt?: Date;
+  endedAt?: Date;
+}) {
+  return await prisma.subscription.upsert({
+    where: { creemSubscriptionId: data.creemSubscriptionId },
+    update: {
+      status: data.status as any,
+      productId: data.productId,
+      productName: data.productName,
+      currentPeriodEnd: data.currentPeriodEnd,
+      trialEnd: data.trialEnd,
+      canceledAt: data.canceledAt,
+      endedAt: data.endedAt,
+      updatedAt: new Date(),
+    },
+    create: {
+      userId: data.userId,
+      creemSubscriptionId: data.creemSubscriptionId,
+      status: data.status as any,
+      productId: data.productId,
+      productName: data.productName,
+      currentPeriodEnd: data.currentPeriodEnd,
+      trialEnd: data.trialEnd,
+      canceledAt: data.canceledAt,
+      endedAt: data.endedAt,
+    },
+  });
+}
+
 // ========== 支付相关处理函数 ==========
 
 async function handleCheckoutCompleted(data: {
   customer: { email: string };
   product: { id: string; name: string };
+  checkoutId?: string;
+  amount?: number;
+  currency?: string;
 }) {
-  const { customer, product } = data;
-  // TODO: 更新数据库，记录支付信息
-  // TODO: 激活用户订阅或积分
-  console.log(`✅ 支付完成 - 用户: ${customer.email}, 产品: ${product.name}`);
+  const { customer, product, checkoutId, amount, currency } = data;
+
+  try {
+    // 查找或创建用户
+    let user = await findUserByEmail(customer.email);
+
+    if (!user) {
+      // 如果用户不存在，记录日志但不创建用户（用户需要先注册）
+      console.log(`⚠️ 用户 ${customer.email} 尚未注册，但支付已成功`);
+      return;
+    }
+
+    // 创建支付记录
+    if (checkoutId && amount) {
+      await createPayment({
+        userId: user.id,
+        creemPaymentId: checkoutId,
+        amount,
+        currency: currency || 'USD',
+        status: 'COMPLETED',
+        productId: product.id,
+        productName: product.name,
+        customerEmail: customer.email,
+      });
+    }
+
+    // 如果是订阅产品，激活用户订阅
+    if (product.id.includes('subscription') || product.id.includes('monthly') || product.id.includes('yearly')) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          isSubscribed: true,
+          subscriptionType: product.id,
+        },
+      });
+    }
+
+    console.log(`✅ 支付完成 - 用户: ${customer.email}, 产品: ${product.name}`);
+  } catch (error) {
+    console.error('❌ 处理支付完成失败:', error);
+    throw error;
+  }
 }
 
 async function handleCheckoutFailed(data: {
   customer: { email: string };
   product: { id: string };
   error?: { message: string };
+  checkoutId?: string;
 }) {
-  const { customer, product, error } = data;
-  // TODO: 记录失败原因
-  // TODO: 通知用户并提供重试选项
-  console.log(`❌ 支付失败 - 用户: ${customer.email}, 原因: ${error?.message || '未知'}`);
+  const { customer, product, error, checkoutId } = data;
+
+  try {
+    // 查找用户
+    const user = await findUserByEmail(customer.email);
+
+    if (!user) {
+      console.log(`⚠️ 用户 ${customer.email} 尚未注册`);
+      return;
+    }
+
+    // 更新支付记录状态
+    if (checkoutId) {
+      await createPayment({
+        userId: user.id,
+        creemPaymentId: checkoutId,
+        amount: 0,
+        currency: 'USD',
+        status: 'FAILED',
+        productId: product.id,
+        productName: product.name,
+        customerEmail: customer.email,
+      });
+    }
+
+    console.log(`❌ 支付失败 - 用户: ${customer.email}, 原因: ${error?.message || '未知'}`);
+
+    // TODO: 发送支付失败通知邮件
+    // TODO: 记录失败原因到数据库
+  } catch (error) {
+    console.error('❌ 处理支付失败事件失败:', error);
+    throw error;
+  }
 }
 
 // ========== 访问权限处理函数 ==========
 
 async function grantAccess(userId: string, email: string) {
-  // TODO: 授予用户高级功能访问权限
-  // TODO: 更新数据库中的用户权限状态
-  console.log(`✅ 授予访问权限 - 用户ID: ${userId}, 邮箱: ${email}`);
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        isSubscribed: true,
+      },
+    });
+
+    console.log(`✅ 授予访问权限 - 用户ID: ${userId}, 邮箱: ${email}`);
+  } catch (error) {
+    console.error('❌ 授予访问权限失败:', error);
+    throw error;
+  }
 }
 
 async function revokeAccess(userId: string) {
-  // TODO: 撤销用户的高级功能访问权限
-  // TODO: 保留基础功能
-  console.log(`⚠️ 撤销访问权限 - 用户ID: ${userId}`);
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        isSubscribed: false,
+        subscriptionType: null,
+      },
+    });
+
+    console.log(`⚠️ 撤销访问权限 - 用户ID: ${userId}`);
+  } catch (error) {
+    console.error('❌ 撤销访问权限失败:', error);
+    throw error;
+  }
 }
 
 // ========== 订阅状态处理函数 ==========
@@ -153,14 +325,46 @@ async function handleSubscriptionActive(data: {
     id: string;
     status: string;
     currentPeriodEnd: string;
-    priceId?: string;
+    productId?: string;
+    productName?: string;
   };
   customer: { email: string };
 }) {
   const { subscription, customer } = data;
-  // TODO: 更新订阅状态为激活
-  // TODO: 设置订阅到期时间
-  console.log(`✅ 订阅激活 - 用户: ${customer.email}, 到期时间: ${subscription.currentPeriodEnd}`);
+
+  try {
+    // 查找或创建用户
+    let user = await findUserByEmail(customer.email);
+
+    if (!user) {
+      console.log(`⚠️ 用户 ${customer.email} 尚未注册`);
+      return;
+    }
+
+    // 更新订阅记录
+    await createOrUpdateSubscription({
+      userId: user.id,
+      creemSubscriptionId: subscription.id,
+      status: 'ACTIVE',
+      productId: subscription.productId,
+      productName: subscription.productName,
+      currentPeriodEnd: new Date(subscription.currentPeriodEnd),
+    });
+
+    // 更新用户状态
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isSubscribed: true,
+        subscriptionType: subscription.productId || 'subscription',
+      },
+    });
+
+    console.log(`✅ 订阅激活 - 用户: ${customer.email}, 到期时间: ${subscription.currentPeriodEnd}`);
+  } catch (error) {
+    console.error('❌ 处理订阅激活失败:', error);
+    throw error;
+  }
 }
 
 async function handleSubscriptionTrialing(data: {
@@ -168,13 +372,46 @@ async function handleSubscriptionTrialing(data: {
     id: string;
     status: string;
     trialEnd: string;
+    productId?: string;
+    productName?: string;
   };
   customer: { email: string };
 }) {
   const { subscription, customer } = data;
-  // TODO: 设置试用期标记
-  // TODO: 发送试用欢迎邮件
-  console.log(`🎉 订阅试用期 - 用户: ${customer.email}, 试用结束: ${subscription.trialEnd}`);
+
+  try {
+    // 查找或创建用户
+    let user = await findUserByEmail(customer.email);
+
+    if (!user) {
+      console.log(`⚠️ 用户 ${customer.email} 尚未注册`);
+      return;
+    }
+
+    // 更新订阅记录
+    await createOrUpdateSubscription({
+      userId: user.id,
+      creemSubscriptionId: subscription.id,
+      status: 'TRIALING',
+      productId: subscription.productId,
+      productName: subscription.productName,
+      trialEnd: new Date(subscription.trialEnd),
+    });
+
+    // 更新用户状态
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isSubscribed: true,
+        subscriptionType: subscription.productId || 'trial',
+      },
+    });
+
+    console.log(`🎉 订阅试用期 - 用户: ${customer.email}, 试用结束: ${subscription.trialEnd}`);
+  } catch (error) {
+    console.error('❌ 处理订阅试用期失败:', error);
+    throw error;
+  }
 }
 
 async function handleSubscriptionCanceled(data: {
@@ -186,9 +423,32 @@ async function handleSubscriptionCanceled(data: {
   customer: { email: string };
 }) {
   const { subscription, customer } = data;
-  // TODO: 立即撤销访问权限
-  // TODO: 发送取消确认邮件
-  console.log(`🚫 订阅立即取消 - 用户: ${customer.email}, 取消时间: ${subscription.canceledAt}`);
+
+  try {
+    // 查找用户
+    const user = await findUserByEmail(customer.email);
+
+    if (!user) {
+      console.log(`⚠️ 用户 ${customer.email} 尚未注册`);
+      return;
+    }
+
+    // 更新订阅记录
+    await createOrUpdateSubscription({
+      userId: user.id,
+      creemSubscriptionId: subscription.id,
+      status: 'CANCELED',
+      canceledAt: new Date(subscription.canceledAt),
+    });
+
+    // 撤销用户访问权限
+    await revokeAccess(user.id);
+
+    console.log(`🚫 订阅立即取消 - 用户: ${customer.email}, 取消时间: ${subscription.canceledAt}`);
+  } catch (error) {
+    console.error('❌ 处理订阅取消失败:', error);
+    throw error;
+  }
 }
 
 async function handleSubscriptionScheduledCancel(data: {
@@ -200,9 +460,29 @@ async function handleSubscriptionScheduledCancel(data: {
   customer: { email: string };
 }) {
   const { subscription, customer } = data;
-  // TODO: 标记订阅将在到期时取消
-  // TODO: 通知用户保留到当前计费周期结束
-  console.log(`⏰ 订阅计划取消 - 用户: ${customer.email}, 到期时间: ${subscription.currentPeriodEnd}`);
+
+  try {
+    // 查找用户
+    const user = await findUserByEmail(customer.email);
+
+    if (!user) {
+      console.log(`⚠️ 用户 ${customer.email} 尚未注册`);
+      return;
+    }
+
+    // 更新订阅记录
+    await createOrUpdateSubscription({
+      userId: user.id,
+      creemSubscriptionId: subscription.id,
+      status: 'SCHEDULED_TO_CANCEL',
+      currentPeriodEnd: new Date(subscription.currentPeriodEnd),
+    });
+
+    console.log(`⏰ 订阅计划取消 - 用户: ${customer.email}, 到期时间: ${subscription.currentPeriodEnd}`);
+  } catch (error) {
+    console.error('❌ 处理订阅计划取消失败:', error);
+    throw error;
+  }
 }
 
 async function handleSubscriptionPaid(data: {
@@ -214,9 +494,29 @@ async function handleSubscriptionPaid(data: {
   customer: { email: string };
 }) {
   const { subscription, customer } = data;
-  // TODO: 更新订阅到期时间
-  // TODO: 发送续费成功邮件
-  console.log(`💰 订阅续费成功 - 用户: ${customer.email}, 新到期时间: ${subscription.currentPeriodEnd}`);
+
+  try {
+    // 查找用户
+    const user = await findUserByEmail(customer.email);
+
+    if (!user) {
+      console.log(`⚠️ 用户 ${customer.email} 尚未注册`);
+      return;
+    }
+
+    // 更新订阅记录
+    await createOrUpdateSubscription({
+      userId: user.id,
+      creemSubscriptionId: subscription.id,
+      status: 'ACTIVE',
+      currentPeriodEnd: new Date(subscription.currentPeriodEnd),
+    });
+
+    console.log(`💰 订阅续费成功 - 用户: ${customer.email}, 新到期时间: ${subscription.currentPeriodEnd}`);
+  } catch (error) {
+    console.error('❌ 处理订阅续费失败:', error);
+    throw error;
+  }
 }
 
 async function handleSubscriptionExpired(data: {
@@ -228,9 +528,32 @@ async function handleSubscriptionExpired(data: {
   customer: { email: string };
 }) {
   const { subscription, customer } = data;
-  // TODO: 撤销访问权限
-  // TODO: 发送过期通知
-  console.log(`⏰ 订阅过期 - 用户: ${customer.email}, 过期时间: ${subscription.endedAt}`);
+
+  try {
+    // 查找用户
+    const user = await findUserByEmail(customer.email);
+
+    if (!user) {
+      console.log(`⚠️ 用户 ${customer.email} 尚未注册`);
+      return;
+    }
+
+    // 更新订阅记录
+    await createOrUpdateSubscription({
+      userId: user.id,
+      creemSubscriptionId: subscription.id,
+      status: 'EXPIRED',
+      endedAt: new Date(subscription.endedAt),
+    });
+
+    // 撤销用户访问权限
+    await revokeAccess(user.id);
+
+    console.log(`⏰ 订阅过期 - 用户: ${customer.email}, 过期时间: ${subscription.endedAt}`);
+  } catch (error) {
+    console.error('❌ 处理订阅过期失败:', error);
+    throw error;
+  }
 }
 
 async function handleSubscriptionUnpaid(data: {
@@ -241,37 +564,107 @@ async function handleSubscriptionUnpaid(data: {
   customer: { email: string };
 }) {
   const { subscription, customer } = data;
-  // TODO: 标记订阅为未支付
-  // TODO: 发送支付失败通知
-  console.log(`💳 订阅未支付 - 用户: ${customer.email}`);
+
+  try {
+    // 查找用户
+    const user = await findUserByEmail(customer.email);
+
+    if (!user) {
+      console.log(`⚠️ 用户 ${customer.email} 尚未注册`);
+      return;
+    }
+
+    // 更新订阅记录
+    await createOrUpdateSubscription({
+      userId: user.id,
+      creemSubscriptionId: subscription.id,
+      status: 'UNPAID',
+    });
+
+    console.log(`💳 订阅未支付 - 用户: ${customer.email}`);
+  } catch (error) {
+    console.error('❌ 处理订阅未支付失败:', error);
+    throw error;
+  }
 }
 
 async function handleSubscriptionUpdated(data: {
   subscription: {
     id: string;
     status: string;
-    priceId?: string;
+    productId?: string;
+    productName?: string;
   };
   customer: { email: string };
 }) {
   const { subscription, customer } = data;
-  // TODO: 更新订阅计划
-  // TODO: 发送计划变更通知
-  console.log(`🔄 订阅更新 - 用户: ${customer.email}, 新计划: ${subscription.priceId}`);
+
+  try {
+    // 查找用户
+    const user = await findUserByEmail(customer.email);
+
+    if (!user) {
+      console.log(`⚠️ 用户 ${customer.email} 尚未注册`);
+      return;
+    }
+
+    // 更新订阅记录
+    await createOrUpdateSubscription({
+      userId: user.id,
+      creemSubscriptionId: subscription.id,
+      status: subscription.status,
+      productId: subscription.productId,
+      productName: subscription.productName,
+    });
+
+    // 更新用户订阅类型
+    if (subscription.productId) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          subscriptionType: subscription.productId,
+        },
+      });
+    }
+
+    console.log(`🔄 订阅更新 - 用户: ${customer.email}, 新计划: ${subscription.productName}`);
+  } catch (error) {
+    console.error('❌ 处理订阅更新失败:', error);
+    throw error;
+  }
 }
 
 async function handleSubscriptionPastDue(data: {
   subscription: {
     id: string;
     status: string;
-    nextPaymentDate: string;
+    nextPaymentDate?: string;
   };
   customer: { email: string };
 }) {
   const { subscription, customer } = data;
-  // TODO: 发送逾期提醒
-  // TODO: 提供立即支付选项
-  console.log(`⚠️ 订阅逾期 - 用户: ${customer.email}, 下次付款: ${subscription.nextPaymentDate}`);
+
+  try {
+    // 查找用户
+    const user = await findUserByEmail(customer.email);
+
+    if (!user) {
+      console.log(`⚠️ 用户 ${customer.email} 尚未注册`);
+      return;
+    }
+
+    // 更新订阅记录
+    await createOrUpdateSubscription({
+      userId: user.id,
+      creemSubscriptionId: subscription.id,
+      status: 'PAST_DUE',
+    });
+
+    console.log(`⚠️ 订阅逾期 - 用户: ${customer.email}, 下次付款: ${subscription.nextPaymentDate || '未知'}`);
+  } catch (error) {
+    console.error('❌ 处理订阅逾期失败:', error);
+    throw error;
+  }
 }
 
 async function handleSubscriptionPaused(data: {
@@ -283,9 +676,28 @@ async function handleSubscriptionPaused(data: {
   customer: { email: string };
 }) {
   const { subscription, customer } = data;
-  // TODO: 暂停订阅服务
-  // TODO: 发送暂停通知
-  console.log(`⏸️ 订阅暂停 - 用户: ${customer.email}, 暂停时间: ${subscription.pausedAt}`);
+
+  try {
+    // 查找用户
+    const user = await findUserByEmail(customer.email);
+
+    if (!user) {
+      console.log(`⚠️ 用户 ${customer.email} 尚未注册`);
+      return;
+    }
+
+    // 更新订阅记录
+    await createOrUpdateSubscription({
+      userId: user.id,
+      creemSubscriptionId: subscription.id,
+      status: 'PAUSED',
+    });
+
+    console.log(`⏸️ 订阅暂停 - 用户: ${customer.email}, 暂停时间: ${subscription.pausedAt}`);
+  } catch (error) {
+    console.error('❌ 处理订阅暂停失败:', error);
+    throw error;
+  }
 }
 
 // ========== 退款和争议处理函数 ==========
@@ -296,15 +708,58 @@ async function handleRefundCreated(data: {
     amount: number;
     currency: string;
     reason?: string;
+    paymentId?: string;
   };
   subscription?: { id: string };
   customer: { email: string };
 }) {
   const { refund, subscription, customer } = data;
-  // TODO: 更新订单状态为已退款
-  // TODO: 撤销相关服务或积分
-  // TODO: 发送退款确认邮件
-  console.log(`💸 退款创建 - 用户: ${customer.email}, 金额: ${refund.amount} ${refund.currency}, 原因: ${refund.reason || '未指定'}`);
+
+  try {
+    // 查找用户
+    const user = await findUserByEmail(customer.email);
+
+    if (!user) {
+      console.log(`⚠️ 用户 ${customer.email} 尚未注册`);
+      return;
+    }
+
+    // 如果有关联的支付记录，更新支付状态
+    if (refund.paymentId) {
+      await prisma.payment.updateMany({
+        where: { creemPaymentId: refund.paymentId },
+        data: { status: 'REFUNDED' },
+      });
+
+      // 创建退款记录
+      const payment = await prisma.payment.findFirst({
+        where: { creemPaymentId: refund.paymentId },
+      });
+
+      if (payment) {
+        await prisma.refund.create({
+          data: {
+            paymentId: payment.id,
+            creemRefundId: refund.id,
+            amount: refund.amount,
+            currency: refund.currency,
+            reason: refund.reason,
+            status: 'COMPLETED',
+          },
+        });
+      }
+    }
+
+    // 如果是订阅退款，撤销访问权限
+    if (subscription) {
+      await revokeAccess(user.id);
+    }
+
+    console.log(`💸 退款创建 - 用户: ${customer.email}, 金额: ${refund.amount} ${refund.currency}, 原因: ${refund.reason || '未指定'}`);
+  } catch (error) {
+    console.error('❌ 处理退款创建失败:', error);
+    throw error;
+  }
 }
 
 async function handleDisputeCreated(data: {
@@ -318,8 +773,31 @@ async function handleDisputeCreated(data: {
   customer: { email: string };
 }) {
   const { dispute, customer } = data;
-  // TODO: 标记争议状态
-  // TODO: 准备证据材料
-  // TODO: 通知相关人员处理
-  console.log(`⚖️ 争议创建 - 用户: ${customer.email}, 金额: ${dispute.amount} ${dispute.currency}, 原因: ${dispute.reason}, 状态: ${dispute.status}`);
+
+  try {
+    // 查找用户
+    const user = await findUserByEmail(customer.email);
+
+    if (!user) {
+      console.log(`⚠️ 用户 ${customer.email} 尚未注册`);
+      return;
+    }
+
+    // 创建争议记录
+    await prisma.dispute.create({
+      data: {
+        userId: user.id,
+        creemDisputeId: dispute.id,
+        amount: dispute.amount,
+        currency: dispute.currency,
+        reason: dispute.reason,
+        status: dispute.status,
+      },
+    });
+
+    console.log(`⚖️ 争议创建 - 用户: ${customer.email}, 金额: ${dispute.amount} ${dispute.currency}, 原因: ${dispute.reason}, 状态: ${dispute.status}`);
+  } catch (error) {
+    console.error('❌ 处理争议创建失败:', error);
+    throw error;
+  }
 }
