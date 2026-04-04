@@ -17,9 +17,9 @@ export async function POST(request: NextRequest) {
 
     // 创建 Checkout Session
     const checkout = await creem.checkouts.create({
-      priceId: priceId,
-      successUrl: successUrl,
-      cancelUrl: cancelUrl,
+      product_id: priceId,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
         ...metadata,
         timestamp: new Date().toISOString(),
