@@ -134,7 +134,7 @@ export default function MyDreamsPage() {
               )}
             </div>
             <div className="flex gap-2">
-              {user.isSubscribed && !user.subscriptionEnd && (
+              {user.isSubscribed && (
                 <button
                   onClick={handleSyncSubscription}
                   disabled={syncing}

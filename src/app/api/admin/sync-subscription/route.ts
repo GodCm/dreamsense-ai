@@ -13,17 +13,19 @@ export async function POST(request: Request) {
 
     const { prisma } = await import('@/lib/db');
 
-    // 查找用户的订阅记录
-    const subscription = await prisma.subscription.findFirst({
-      where: {
-        userId: user.id,
-        status: { in: ['ACTIVE', 'TRIALING'] }
-      },
+    // 查找用户的所有订阅记录（用于调试）
+    const allSubscriptions = await prisma.subscription.findMany({
+      where: { userId: user.id },
       orderBy: { createdAt: 'desc' }
     });
 
+    console.log('All subscriptions for user:', allSubscriptions);
+
+    // 查找用户的订阅记录（不限状态）
+    const subscription = allSubscriptions[0];
+
     if (!subscription) {
-      return NextResponse.json({ error: 'No active subscription found' }, { status: 404 });
+      return NextResponse.json({ error: 'No subscription found' }, { status: 404 });
     }
 
     // 从 Creem API 获取订阅详情
