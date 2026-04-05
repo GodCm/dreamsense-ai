@@ -25,6 +25,7 @@ export default function MyDreamsPage() {
   const [user, setUser] = useState<User | null>(null);
   const [dreams, setDreams] = useState<Dream[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     fetchUserData();
@@ -36,6 +37,7 @@ export default function MyDreamsPage() {
       const response = await fetch('/api/auth/status');
       if (response.ok) {
         const data = await response.json();
+        console.log('User data from API:', data);
         setUser(data.user);
       } else {
         // 未登录，跳转到首页
@@ -66,6 +68,28 @@ export default function MyDreamsPage() {
       router.push('/');
     } catch (error) {
       console.error('登出失败:', error);
+    }
+  };
+
+  const handleSyncSubscription = async () => {
+    setSyncing(true);
+    try {
+      const response = await fetch('/api/admin/sync-subscription', { method: 'POST' });
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Subscription synced:', data);
+        // 重新获取用户数据
+        await fetchUserData();
+        alert('订阅信息已同步！');
+      } else {
+        const error = await response.json();
+        alert(`同步失败: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('同步失败:', error);
+      alert('同步失败，请查看控制台');
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -109,12 +133,23 @@ export default function MyDreamsPage() {
                 </p>
               )}
             </div>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-accent-secondary hover:bg-accent-secondary/80 rounded-xl font-semibold transition-all"
-            >
-              Logout
-            </button>
+            <div className="flex gap-2">
+              {user.isSubscribed && !user.subscriptionEnd && (
+                <button
+                  onClick={handleSyncSubscription}
+                  disabled={syncing}
+                  className="px-4 py-2 bg-warning hover:bg-warning/80 rounded-xl font-semibold transition-all disabled:opacity-50"
+                >
+                  {syncing ? 'Syncing...' : 'Sync Subscription'}
+                </button>
+              )}
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-accent-secondary hover:bg-accent-secondary/80 rounded-xl font-semibold transition-all"
+              >
+                Logout
+              </button>
+            </div>
           </div>
 
           {!user.isSubscribed && (

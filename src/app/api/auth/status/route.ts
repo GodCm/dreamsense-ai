@@ -26,6 +26,13 @@ export async function GET(request: Request) {
       }
     });
 
+    // 调试日志
+    console.log('User subscription data:', {
+      userId: user.id,
+      subscription,
+      currentPeriodEnd: subscription?.currentPeriodEnd
+    });
+
     return NextResponse.json({
       isLoggedIn: true,
       user: {
