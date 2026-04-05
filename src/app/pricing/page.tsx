@@ -16,7 +16,7 @@ const plans = [
     ],
     cta: 'Get Started',
     popular: false,
-    priceId: 'prod_1ZDzIytYEFMDwmnHP77D3E',
+    priceId: 'prod_74zYfFykZ9RKjyBdxko7Sf',
   },
   {
     name: 'Monthly',
@@ -31,7 +31,7 @@ const plans = [
     ],
     cta: 'Subscribe Monthly',
     popular: true,
-    priceId: 'prod_hsXcKCUwYE2iYFtwM4ONK',
+    priceId: 'prod_213JsFyUBbjqgIR9s45mYh',
   },
   {
     name: 'Yearly',
@@ -46,7 +46,7 @@ const plans = [
     ],
     cta: 'Subscribe Yearly',
     popular: false,
-    priceId: 'prod_6JtxxrOfoTScuZx7AtILYh',
+    priceId: 'prod_1Ih8kEt24I5ibWkHH0pVSk',
   },
 ];
 
@@ -61,6 +61,7 @@ export default function PricingPage() {
       // 使用生产环境的支付页面
       const checkoutUrl = `https://www.creem.io/payment/${plan.priceId}?success=${encodeURIComponent(`${window.location.origin}/success`)}&cancel=${encodeURIComponent(`${window.location.origin}/cancel`)}`;
 
+      console.log('Checkout URL:', checkoutUrl);
       window.location.href = checkoutUrl;
     } catch (error) {
       console.error('支付错误:', error);
