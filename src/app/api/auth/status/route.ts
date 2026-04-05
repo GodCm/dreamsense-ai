@@ -12,12 +12,28 @@ export async function GET(request: Request) {
       return NextResponse.json({ isLoggedIn: false });
     }
 
+    // Get user's subscription info
+    const { prisma } = await import('@/lib/db');
+    const subscription = await prisma.subscription.findFirst({
+      where: {
+        userId: user.id,
+        status: {
+          in: ['ACTIVE', 'TRIALING']
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
     return NextResponse.json({
       isLoggedIn: true,
       user: {
         id: user.id,
         email: user.email,
         isSubscribed: user.isSubscribed,
+        subscriptionType: user.subscriptionType,
+        subscriptionEnd: subscription?.currentPeriodEnd || null,
       }
     });
   } catch (error) {

@@ -8,6 +8,7 @@ interface User {
   email: string;
   isSubscribed: boolean;
   subscriptionType: string | null;
+  subscriptionEnd: string | null;
   createdAt: string;
 }
 
@@ -96,6 +97,15 @@ export default function MyDreamsPage() {
               {user.subscriptionType && (
                 <p className="text-accent mt-1">
                   Subscription: {user.subscriptionType}
+                </p>
+              )}
+              {user.isSubscribed && user.subscriptionEnd && (
+                <p className="text-text-secondary/60 text-sm mt-1">
+                  Expires: {new Date(user.subscriptionEnd).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
                 </p>
               )}
             </div>
