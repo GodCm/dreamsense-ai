@@ -13,18 +13,30 @@ export async function POST(request: Request) {
 
     const { prisma } = await import('@/lib/db');
 
+    // 检查 API Key
+    const apiKey = process.env.CREEM_API_KEY;
+    console.log('API Key exists:', !!apiKey);
+    console.log('API Key prefix:', apiKey?.substring(0, 15));
+
     // 从 Creem API 获取用户的订阅列表
-    // 先获取所有订阅，然后根据客户邮箱匹配
     const creemResponse = await fetch('https://api.creem.io/v1/subscriptions/search', {
       headers: {
-        'x-api-key': process.env.CREEM_API_KEY!
+        'x-api-key': apiKey!,
+        'Content-Type': 'application/json'
       }
     });
+
+    console.log('Creem API status:', creemResponse.status);
+    console.log('Creem API statusText:', creemResponse.statusText);
 
     if (!creemResponse.ok) {
       const errorText = await creemResponse.text();
       console.error('Creem API error:', errorText);
-      return NextResponse.json({ error: 'Failed to fetch subscription from Creem' }, { status: 500 });
+      return NextResponse.json({ 
+        error: 'Failed to fetch subscription from Creem', 
+        details: errorText,
+        status: creemResponse.status 
+      }, { status: 500 });
     }
 
     const creemData = await creemResponse.json();
