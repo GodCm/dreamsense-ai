@@ -57,26 +57,10 @@ export default function PricingPage() {
     try {
       setLoading(index);
 
-      const response = await fetch('/api/payments/create-checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          priceId: plan.priceId,
-          successUrl: `${window.location.origin}/my-dreams`,
-        }),
-      });
+      // 临时使用直接链接方式（因为 API 创建 checkout 返回 403 Forbidden）
+      const checkoutUrl = `https://www.creem.io/test/payment/${plan.priceId}?success=${encodeURIComponent(`${window.location.origin}/my-dreams`)}`;
 
-
-      const data = await response.json();
-
-      if (data.success && data.url) {
-        window.location.href = data.url;
-      } else {
-        alert('创建支付失败，请重试');
-        setLoading(null);
-      }
+      window.location.href = checkoutUrl;
     } catch (error) {
       console.error('支付错误:', error);
       alert('支付出错，请重试');
