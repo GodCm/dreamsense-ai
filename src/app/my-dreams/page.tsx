@@ -72,15 +72,11 @@ export default function MyDreamsPage() {
   };
 
   const handleSyncSubscription = async () => {
-    const creemSubscriptionId = prompt('请输入你的 Creem 订阅 ID（从 Creem 后台查看）:');
-    if (!creemSubscriptionId) return;
-
     setSyncing(true);
     try {
-      const response = await fetch('/api/admin/manual-sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ creemSubscriptionId })
+      // 使用 sync-subscription 端点，自动通过邮箱查询
+      const response = await fetch('/api/admin/sync-subscription', {
+        method: 'POST'
       });
 
       if (response.ok) {
