@@ -58,7 +58,8 @@ export default function PricingPage() {
       setLoading(index);
 
       // 临时使用直接链接方式（因为 API 创建 checkout 返回 403 Forbidden）
-      const checkoutUrl = `https://www.creem.io/test/payment/${plan.priceId}?success=${encodeURIComponent(`${window.location.origin}/success`)}&cancel=${encodeURIComponent(`${window.location.origin}/cancel`)}`;
+      // 使用生产环境的支付页面
+      const checkoutUrl = `https://www.creem.io/payment/${plan.priceId}?success=${encodeURIComponent(`${window.location.origin}/success`)}&cancel=${encodeURIComponent(`${window.location.origin}/cancel`)}`;
 
       window.location.href = checkoutUrl;
     } catch (error) {
