@@ -16,7 +16,7 @@ const plans = [
     ],
     cta: 'Get Started',
     popular: false,
-    priceId: 'prod_74zYfFykZ9RKjyBdxko7Sf',
+    priceId: 'prod_1ZDzIytYEFMDwmnHP77D3E',
   },
   {
     name: 'Monthly',
@@ -31,7 +31,7 @@ const plans = [
     ],
     cta: 'Subscribe Monthly',
     popular: true,
-    priceId: 'prod_213JsFyUBbjqgIR9s45mYh',
+    priceId: 'prod_hsXcKCUwYE2iYFtwM4ONK',
   },
   {
     name: 'Yearly',
@@ -46,7 +46,7 @@ const plans = [
     ],
     cta: 'Subscribe Yearly',
     popular: false,
-    priceId: 'prod_1Ih8kEt24I5ibWkHH0pVSk',
+    priceId: 'prod_6JtxxrOfoTScuZx7AtILYh',
   },
 ];
 
