@@ -14,6 +14,9 @@ interface CreatePaymentRequest {
 export async function POST(request: NextRequest) {
   try {
     console.log('=== Creating Checkout Session ===');
+    console.log('Test Mode:', process.env.CREEM_TEST_MODE);
+    console.log('API Key:', process.env.CREEM_API_KEY?.substring(0, 15) + '...');
+
     const body: CreatePaymentRequest = await request.json();
     const { priceId, successUrl, metadata = {} } = body;
     console.log('Request body:', { priceId, successUrl });
@@ -33,12 +36,19 @@ export async function POST(request: NextRequest) {
       success: true,
       url: checkout.checkoutUrl,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('创建支付会话失败:', error);
+    console.error('错误详情:', {
+      message: error.message,
+      status: error.status,
+      statusCode: error.statusCode,
+      response: error.response?.data,
+    });
     return NextResponse.json(
       {
         success: false,
         error: '创建支付会话失败',
+        details: error.message,
       },
       { status: 500 }
     );
