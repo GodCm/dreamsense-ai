@@ -22,7 +22,8 @@ export async function POST(request: Request) {
 
     // 从 Creem API 获取订阅详情
     // 使用测试环境 API（因为 API Key 是测试模式的）
-    const creemResponse = await fetch(`https://test-api.creem.io/v1/subscriptions/${creemSubscriptionId}`, {
+    // 正确的端点格式：/v1/subscriptions?subscription_id={id}
+    const creemResponse = await fetch(`https://test-api.creem.io/v1/subscriptions?subscription_id=${creemSubscriptionId}`, {
       headers: {
         'x-api-key': process.env.CREEM_API_KEY!
       }
