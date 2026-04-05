@@ -189,14 +189,16 @@ export default function MyDreamsPage() {
 
                   <div className="mb-4">
                     <h3 className="font-semibold text-text-primary mb-2">Dream Content</h3>
-                    <p className="text-text-secondary line-clamp-2">{dream.dreamText}</p>
+                    <div className="text-text-secondary max-h-32 overflow-y-auto pr-2">
+                      <p>{dream.dreamText}</p>
+                    </div>
                   </div>
 
                   <div>
                     <h3 className="font-semibold text-text-primary mb-2">Interpretation</h3>
-                    <p className="text-text-secondary line-clamp-3">
-                      {dream.interpretation}
-                    </p>
+                    <div className="text-text-secondary max-h-96 overflow-y-auto pr-2">
+                      <p>{dream.interpretation}</p>
+                    </div>
                   </div>
                 </div>
               ))}
