@@ -13,8 +13,10 @@ interface CreatePaymentRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== Creating Checkout Session ===');
     const body: CreatePaymentRequest = await request.json();
     const { priceId, successUrl, metadata = {} } = body;
+    console.log('Request body:', { priceId, successUrl });
 
     // 创建 Checkout Session
     const checkout = await creemClient.checkouts.create({
