@@ -366,16 +366,14 @@ async function handleCheckoutCompleted(data: {
       });
     }
 
-    // 如果是订阅产品，激活用户订阅
-    if (product.id.includes('subscription') || product.id.includes('monthly') || product.id.includes('yearly')) {
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          isSubscribed: true,
-          subscriptionType: product.id,
-        },
-      });
-    }
+    // 更新用户的订阅状态（包括一次性购买和订阅）
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isSubscribed: true,
+        subscriptionType: product.id,
+      },
+    });
 
     console.log(`✅ 支付完成 - 用户: ${customer.email}, 产品: ${product.name}`);
   } catch (error) {
