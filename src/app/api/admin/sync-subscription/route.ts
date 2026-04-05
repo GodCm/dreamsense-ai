@@ -19,8 +19,8 @@ export async function POST(request: Request) {
     console.log('API Key prefix:', apiKey?.substring(0, 15));
 
     // 从 Creem API 获取用户的订阅列表
-    // 使用测试环境 API（因为 API Key 是测试模式的）
-    const creemResponse = await fetch('https://test-api.creem.io/v1/subscriptions/search', {
+    // 使用生产环境 API
+    const creemResponse = await fetch('https://api.creem.io/v1/subscriptions/search', {
       headers: {
         'x-api-key': apiKey!,
         'Content-Type': 'application/json'
