@@ -13,8 +13,9 @@ export async function POST(request: Request) {
 
     const { prisma } = await import('@/lib/db');
 
-    // 从 Creem API 获取用户的订阅列表（按邮箱筛选）
-    const creemResponse = await fetch(`https://api.creem.io/v1/subscriptions?customer_email=${encodeURIComponent(user.email)}`, {
+    // 从 Creem API 获取用户的订阅列表
+    // 先获取所有订阅，然后根据客户邮箱匹配
+    const creemResponse = await fetch('https://api.creem.io/v1/subscriptions/search', {
       headers: {
         'x-api-key': process.env.CREEM_API_KEY!
       }
@@ -29,11 +30,19 @@ export async function POST(request: Request) {
     const creemData = await creemResponse.json();
     console.log('Creem subscriptions response:', creemData);
 
-    const subscriptions = creemData.data || creemData.subscriptions || [];
+    // 查找匹配当前用户邮箱的订阅
+    const subscriptions = creemData.items || [];
+    const userSubscriptions = subscriptions.filter((s: any) => {
+      const customerEmail = s.customer?.email || '';
+      return customerEmail.toLowerCase() === user.email.toLowerCase();
+    });
 
-    if (!subscriptions || subscriptions.length === 0) {
+    if (!userSubscriptions || userSubscriptions.length === 0) {
+      console.log('No subscription found for email:', user.email);
       return NextResponse.json({ error: 'No subscription found in Creem' }, { status: 404 });
     }
+
+    console.log('Found subscriptions:', userSubscriptions.length);
 
     // 取最新的活跃订阅
     const activeSubscription = subscriptions.find((s: any) =>
