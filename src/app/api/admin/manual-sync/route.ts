@@ -44,9 +44,23 @@ export async function POST(request: Request) {
     const creemData = await creemResponse.json();
     console.log('Creem subscription data:', creemData);
 
+    // 处理可能的响应格式
+    let subscriptionData = creemData;
+    if (creemData.items && Array.isArray(creemData.items)) {
+      subscriptionData = creemData.items[0];
+    } else if (Array.isArray(creemData)) {
+      subscriptionData = creemData[0];
+    }
+
+    console.log('Extracted subscription data:', subscriptionData);
+
+    if (!subscriptionData) {
+      return NextResponse.json({ error: 'No subscription data found' }, { status: 404 });
+    }
+
     // 更新或创建数据库中的订阅记录
-    const currentPeriodEnd = creemData.current_period_end_date
-      ? new Date(creemData.current_period_end_date)
+    const currentPeriodEnd = subscriptionData.current_period_end_date
+      ? new Date(subscriptionData.current_period_end_date)
       : null;
 
     const updatedSubscription = await prisma.subscription.upsert({
@@ -54,18 +68,18 @@ export async function POST(request: Request) {
       create: {
         userId: user.id,
         creemSubscriptionId,
-        status: creemData.status,
-        productId: creemData.product?.id || null,
-        productName: creemData.product?.name || null,
+        status: subscriptionData.status,
+        productId: subscriptionData.product?.id || null,
+        productName: subscriptionData.product?.name || null,
         currentPeriodEnd,
-        trialEnd: creemData.trial_end_date ? new Date(creemData.trial_end_date) : null,
+        trialEnd: subscriptionData.trial_end_date ? new Date(subscriptionData.trial_end_date) : null,
       },
       update: {
-        status: creemData.status,
-        productId: creemData.product?.id || null,
-        productName: creemData.product?.name || null,
+        status: subscriptionData.status,
+        productId: subscriptionData.product?.id || null,
+        productName: subscriptionData.product?.name || null,
         currentPeriodEnd,
-        trialEnd: creemData.trial_end_date ? new Date(creemData.trial_end_date) : null,
+        trialEnd: subscriptionData.trial_end_date ? new Date(subscriptionData.trial_end_date) : null,
         updatedAt: new Date()
       }
     });
@@ -74,8 +88,8 @@ export async function POST(request: Request) {
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        isSubscribed: ['ACTIVE', 'TRIALING'].includes(creemData.status),
-        subscriptionType: creemData.product?.id || null,
+        isSubscribed: ['ACTIVE', 'TRIALING'].includes(subscriptionData.status),
+        subscriptionType: subscriptionData.product?.id || null,
       }
     });
 
@@ -83,7 +97,7 @@ export async function POST(request: Request) {
       userId: user.id,
       creemSubscriptionId,
       currentPeriodEnd,
-      status: creemData.status
+      status: subscriptionData.status
     });
 
     return NextResponse.json({
