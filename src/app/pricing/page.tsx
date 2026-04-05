@@ -57,12 +57,31 @@ export default function PricingPage() {
     try {
       setLoading(index);
 
-      // 临时使用直接链接方式（因为 API 创建 checkout 返回 403 Forbidden）
-      // 使用生产环境的支付页面
-      const checkoutUrl = `https://www.creem.io/payment/${plan.priceId}?success=${encodeURIComponent(`${window.location.origin}/success`)}&cancel=${encodeURIComponent(`${window.location.origin}/cancel`)}`;
+      // 调用后端 API 创建 checkout session
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId: plan.priceId })
+      });
 
-      console.log('Checkout URL:', checkoutUrl);
-      window.location.href = checkoutUrl;
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('Checkout creation error:', error);
+        alert(`创建支付失败: ${error.error}\n详情: ${error.details || '查看控制台'}`);
+        setLoading(null);
+        return;
+      }
+
+      const data = await response.json();
+      console.log('Checkout created:', data);
+
+      // 跳转到 Creem 支付页面
+      if (data.checkout_url) {
+        window.location.href = data.checkout_url;
+      } else {
+        alert('未能获取支付链接');
+        setLoading(null);
+      }
     } catch (error) {
       console.error('支付错误:', error);
       alert('支付出错，请重试');
