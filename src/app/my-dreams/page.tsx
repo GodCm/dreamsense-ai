@@ -72,9 +72,17 @@ export default function MyDreamsPage() {
   };
 
   const handleSyncSubscription = async () => {
+    const creemSubscriptionId = prompt('请输入你的 Creem 订阅 ID（从 Creem 后台查看）:');
+    if (!creemSubscriptionId) return;
+
     setSyncing(true);
     try {
-      const response = await fetch('/api/admin/sync-subscription', { method: 'POST' });
+      const response = await fetch('/api/admin/manual-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ creemSubscriptionId })
+      });
+
       if (response.ok) {
         const data = await response.json();
         console.log('Subscription synced:', data);
@@ -83,7 +91,7 @@ export default function MyDreamsPage() {
         alert('订阅信息已同步！');
       } else {
         const error = await response.json();
-        alert(`同步失败: ${error.error}`);
+        alert(`同步失败: ${error.error}\n详情: ${error.details || ''}`);
       }
     } catch (error) {
       console.error('同步失败:', error);
