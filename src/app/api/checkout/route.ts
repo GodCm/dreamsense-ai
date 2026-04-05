@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 调用 Creem API 创建 checkout session
+    // 注意：Creem API 使用 product_id 而不是 price_id
     const creemResponse = await fetch('https://api.creem.io/v1/checkouts', {
       method: 'POST',
       headers: {
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
         'x-api-key': process.env.CREEM_API_KEY || '',
       },
       body: JSON.stringify({
-        price_id: priceId,
+        product_id: priceId,
         success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.dreamsenseai.org'}/success`,
         cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.dreamsenseai.org'}/cancel`,
       }),
