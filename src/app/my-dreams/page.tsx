@@ -91,7 +91,8 @@ export default function MyDreamsPage() {
         alert('订阅信息已同步！');
       } else {
         const error = await response.json();
-        alert(`同步失败: ${error.error}\n详情: ${error.details || ''}`);
+        console.error('Sync error:', error);
+        alert(`同步失败: ${error.error}\n详情: ${error.details || '查看控制台'}`);
       }
     } catch (error) {
       console.error('同步失败:', error);
