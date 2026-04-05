@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         product_id: priceId,
-        success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.dreamsenseai.org'}/success`,
-        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.dreamsenseai.org'}/cancel`,
+        success: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.dreamsenseai.org'}/success`,
+        cancel: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.dreamsenseai.org'}/cancel`,
       }),
     });
 
