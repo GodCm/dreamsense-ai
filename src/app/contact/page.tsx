@@ -66,10 +66,10 @@ export default function ContactPage() {
                 📧 Email
               </h3>
               <a 
-                href="mailto:support@dreamsense.ai" 
+                href="mailto:support@dreamsenseai.org" 
                 className="text-text-secondary hover:text-accent transition-colors"
               >
-                support@dreamsense.ai
+                support@dreamsenseai.org
               </a>
             </div>
 
