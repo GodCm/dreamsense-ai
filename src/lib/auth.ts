@@ -48,6 +48,8 @@ export async function getUserFromRequest(request?: Request) {
       isSubscribed: true,
       subscriptionType: true,
       freeTrialUsed: true,
+      isAdmin: true,
+      isBanned: true,
     },
   });
 

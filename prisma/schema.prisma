@@ -21,6 +21,9 @@ model User {
   freeTrialUsed    Boolean  @default(false) @map("free_trial_used")
   deviceFingerprint String? @map("device_fingerprint")
   registrationCount Int     @default(1) @map("registration_count")
+  isBanned          Boolean  @default(false) @map("is_banned")
+  banReason         String?  @map("ban_reason")
+  isAdmin           Boolean  @default(false) @map("is_admin")
 
   dreams           Dream[]
   payments         Payment[]
