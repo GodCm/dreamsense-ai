@@ -35,6 +35,17 @@ export default function AdminPage() {
   // Ban modal state
   const [banModal, setBanModal] = useState<{ userId: string; email: string } | null>(null);
   const [banReason, setBanReason] = useState('');
+  const [banReasonType, setBanReasonType] = useState('preset'); // 'preset' or 'custom'
+  const [selectedPreset, setSelectedPreset] = useState('');
+
+  const BAN_PRESETS = [
+    'Violation of Terms of Service',
+    'Abusive or offensive behavior',
+    'Spam or fraudulent activity',
+    'Suspicious account activity',
+    'Chargeback or payment dispute',
+    'Inappropriate content',
+  ];
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -64,12 +75,13 @@ export default function AdminPage() {
 
   const handleBan = async () => {
     if (!banModal) return;
+    const finalReason = banReasonType === 'preset' ? selectedPreset : banReason.trim();
     setActionLoading(banModal.userId);
     try {
       const res = await fetch(`/api/admin/users/${banModal.userId}/ban`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: banReason || undefined }),
+        body: JSON.stringify({ reason: finalReason || undefined }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -78,6 +90,8 @@ export default function AdminPage() {
       }
       setBanModal(null);
       setBanReason('');
+      setBanReasonType('preset');
+      setSelectedPreset('');
       await fetchUsers();
     } catch {
       alert('Something went wrong');
@@ -262,28 +276,82 @@ export default function AdminPage() {
             <p className="text-text-secondary text-sm mb-4">
               Banning <span className="text-text-primary font-medium">{banModal.email}</span> will prevent them from logging in.
             </p>
-            <div className="mb-5">
-              <label className="block text-sm text-text-secondary mb-1.5">
-                Reason (optional)
-              </label>
-              <textarea
-                value={banReason}
-                onChange={(e) => setBanReason(e.target.value)}
-                placeholder="e.g. Violation of terms of service"
-                rows={3}
-                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent resize-none text-sm"
-              />
+
+            {/* Reason type toggle */}
+            <div className="flex gap-1 mb-3 bg-background rounded-lg p-1">
+              <button
+                onClick={() => setBanReasonType('preset')}
+                className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  banReasonType === 'preset' ? 'bg-accent text-background' : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                Preset Reason
+              </button>
+              <button
+                onClick={() => setBanReasonType('custom')}
+                className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  banReasonType === 'custom' ? 'bg-accent text-background' : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                Custom Reason
+              </button>
             </div>
+
+            {/* Preset options */}
+            {banReasonType === 'preset' && (
+              <div className="mb-5">
+                <label className="block text-sm text-text-secondary mb-2">Select a reason</label>
+                <div className="space-y-1.5">
+                  {BAN_PRESETS.map((preset) => (
+                    <label
+                      key={preset}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer border transition-colors ${
+                        selectedPreset === preset
+                          ? 'bg-red-500/10 border-red-500/40 text-red-400'
+                          : 'bg-background border-border text-text-primary hover:border-accent/50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="banPreset"
+                        value={preset}
+                        checked={selectedPreset === preset}
+                        onChange={() => setSelectedPreset(preset)}
+                        className="accent-red-500"
+                      />
+                      <span className="text-sm">{preset}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Custom input */}
+            {banReasonType === 'custom' && (
+              <div className="mb-5">
+                <label className="block text-sm text-text-secondary mb-1.5">
+                  Reason
+                </label>
+                <textarea
+                  value={banReason}
+                  onChange={(e) => setBanReason(e.target.value)}
+                  placeholder="Enter the reason for banning this user..."
+                  rows={3}
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-secondary focus:outline-none focus:border-accent resize-none text-sm"
+                />
+              </div>
+            )}
+
             <div className="flex gap-3 justify-end">
               <button
-                onClick={() => { setBanModal(null); setBanReason(''); }}
+                onClick={() => { setBanModal(null); setBanReason(''); setBanReasonType('preset'); setSelectedPreset(''); }}
                 className="px-4 py-2 rounded-lg text-text-secondary hover:text-text-primary border border-border hover:border-border/80 transition-colors text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleBan}
-                disabled={!!actionLoading}
+                disabled={!!actionLoading || (banReasonType === 'preset' && !selectedPreset)}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium disabled:opacity-50"
               >
                 {actionLoading ? 'Banning...' : 'Confirm Ban'}

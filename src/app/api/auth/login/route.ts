@@ -40,7 +40,11 @@ export async function POST(request: NextRequest) {
     // Check if user is banned
     if (user.isBanned) {
       return NextResponse.json(
-        { error: user.banReason || 'Your account has been suspended. Please contact support@dreamsenseai.org for assistance.' },
+        {
+          error: 'Your account has been suspended.',
+          banned: true,
+          banReason: user.banReason || null,
+        },
         { status: 403 }
       );
     }

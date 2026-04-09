@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [banned, setBanned] = useState<{ reason: string | null } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [deviceFingerprint, setDeviceFingerprint] = useState('');
 
@@ -27,6 +28,7 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    setBanned(null);
 
     try {
       const response = await fetch('/api/auth/login', {
@@ -37,6 +39,10 @@ export default function LoginPage() {
 
       if (!response.ok) {
         const data = await response.json();
+        if (data.banned) {
+          setBanned({ reason: data.banReason || null });
+          return;
+        }
         throw new Error(data.error || 'Login failed');
       }
 
@@ -78,7 +84,35 @@ export default function LoginPage() {
             />
           </div>
 
-          {error && (
+          {/* Banned notice */}
+          {banned && (
+            <div className="p-5 bg-amber-500/10 border border-amber-500/40 rounded-xl">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl mt-0.5">⚠️</span>
+                <div className="flex-1">
+                  <p className="text-amber-400 font-semibold text-base mb-1">Account Suspended</p>
+                  <p className="text-amber-400/80 text-sm mb-3">
+                    Your account has been suspended due to a policy violation.
+                  </p>
+                  {banned.reason && (
+                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 mb-3">
+                      <p className="text-amber-400/70 text-xs font-medium mb-0.5">Reason:</p>
+                      <p className="text-amber-400 text-sm">{banned.reason}</p>
+                    </div>
+                  )}
+                  <p className="text-amber-400/60 text-xs">
+                    If you believe this is a mistake, please contact us at{' '}
+                    <a href="mailto:support@dreamsenseai.org" className="text-amber-400 underline hover:text-amber-300">
+                      support@dreamsenseai.org
+                    </a>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* General error */}
+          {!banned && error && (
             <div className="p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400">
               {error}
             </div>
